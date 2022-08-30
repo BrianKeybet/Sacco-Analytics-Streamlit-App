@@ -14,13 +14,10 @@ from catboost import CatBoostClassifier
 import xgboost as xgb
 import lightgbm as lgbm
 
-st.title('Telco Customer Churn Prediction')
+st.title('K-Unity Sacco Customer Defaulting Prediction')
 
 st.markdown("""
-The churn rate, also known as the rate of attrition or customer churn, is the rate at which customers stop doing 
-business with an entity (e.g., Business Organization). 
-
-You will predict the churn rate of customers in a telecom company using a stored model based on XGBoost, CatBoost or 
+You will predict the defaulting rate of customers in K-Unity using a stored model based on XGBoost, CatBoost or 
 LightGBM.
 
 ## Instructions
@@ -50,11 +47,11 @@ You can also :
 
 """)
 
-df_churn = pd.read_csv("dataset//Telco-Customer-Churn-dataset-cleaned.csv")
-df_train = pd.read_csv('dataset//Telco-Customer-Churn-dataset-Train.csv', index_col=0)
-df_test = pd.read_csv('dataset//Telco-Customer-Churn-dataset-Test.csv', index_col=0)
+df_churn = pd.read_csv("dataset//new_loan_data-cleaned.csv")
+df_train = pd.read_csv('dataset//new_loan_data_train.csv', index_col=0)
+df_test = pd.read_csv('dataset//new_loan_data_test.csv', index_col=0)
 
-st.header('Churn Data Overview')
+st.header('Loans Data Overview')
 st.write('Data Dimension: ' + str(df_churn.shape[0]) + ' rows and ' + str(df_churn.shape[1]) + ' columns.')
 st.dataframe(df_churn)
 
@@ -73,7 +70,7 @@ st.markdown(download_dataset(df_churn), unsafe_allow_html=True)
 st.markdown("## Prediction Result")
 
 
-st.sidebar.markdown("## Predict Customer Churn Rate")
+st.sidebar.markdown("## Predict Customer Defaulting")
 # st.sidebar.markdown("### Select a Model")
 classifier_name = st.sidebar.selectbox(
     'Select a Classifier',
@@ -99,15 +96,15 @@ clf = get_classifier(classifier_name)
 
 
 def get_transformed_data(test_data=None):
-    X = df_train.drop("Churn", axis=1)
+    X = df_train.drop("cluster", axis=1)
 
     if test_data is None:
         test_data = df_test.copy()
     # test dataset
-    y_test = test_data['Churn'].values
-    X_test = test_data.drop("Churn", axis=1)
+    y_test = test_data['cluster'].values
+    X_test = test_data.drop("cluster", axis=1)
 
-    num_cols = ['tenure', 'MonthlyCharges', 'TotalCharges']
+    num_cols = ['InterestRate', 'DisbursedAmount', 'Terms', 'OutstandingLoan', 'PercentageCompleted']
     cat_cols = list(set(X.columns) - set(X._get_numeric_data().columns))
 
     ordinal_encoder = OrdinalEncoder()
@@ -158,7 +155,7 @@ if st.sidebar.button('Prediction on Random Instance from Test Data'):
     random_test_instance = df_test.sample(n=1)
     X_test, y_test = get_transformed_data(random_test_instance)
     test_pred = make_prediction(X_test)
-    st.markdown(f"Prediction on Random Instance From Test Data : {'**Churned**' if test_pred[0]>0.5 else '**Not Churned**'} (Probability: {test_pred[0] : 0.2f}) ")
+    st.markdown(f"Prediction on Random Instance From Test Data : {'**Defaulted**' if test_pred[0]>0.5 else '**Not Defaulted**'} (Probability: {test_pred[0] : 0.2f}) ")
     st.write("Random Instance Features")
     st.dataframe(random_test_instance)
 
@@ -178,69 +175,76 @@ def binning_feature(feature, value):
 
 def user_input_features():
     gender = st.sidebar.selectbox('Gender', ('Male', 'Female'))
-    senior_citizen = st.sidebar.selectbox('Senior Citizen', ('Yes', 'No'))
-    partner = st.sidebar.selectbox('Partner', ('Yes', 'No'))
-    dependents = st.sidebar.selectbox('Dependents', ('Yes', 'No'))
-    phone_service = st.sidebar.selectbox('Phone Service', ('Yes', 'No', 'No phone service'))
-    multiple_lines = st.sidebar.selectbox('Multiple Lines', ('Yes', 'No'))
-    internet_service_type = st.sidebar.selectbox('Internet Service Type', ('DSL', 'Fiber optic', 'No'))
-    online_security = st.sidebar.selectbox('Online Security', ('Yes', 'No', 'No internet service'))
-    online_backup = st.sidebar.selectbox('Online Backup', ('Yes', 'No', 'No internet service'))
-    device_protection = st.sidebar.selectbox('Device Protection', ('Yes', 'No', 'No internet service'))
-    tech_support = st.sidebar.selectbox('Tech Support', ('Yes', 'No', 'No internet service'))
-    streaming_tv = st.sidebar.selectbox('Streaming TV', ('Yes', 'No', 'No internet service'))
-    streaming_movies = st.sidebar.selectbox('Streaming Movies', ('Yes', 'No', 'No internet service'))
-    contract = st.sidebar.selectbox('Contract', ('Month-to-month', 'One year', 'Two year'))
-    paperless_billing = st.sidebar.selectbox('Paperless Billing', ('Yes', 'No'))
+    marital_status = st.sidebar.selectbox('Married', ('Yes', 'No'))
+    occupation = st.sidebar.selectbox('Occupation', ('Farmer', 'Employed', 'Unemployed', 'BusinessPerson'))
+    Terms_binned = st.sidebar.selectbox('Term', ('Short', 'Medium', 'Long'))
+    # phone_service = st.sidebar.selectbox('Phone Service', ('Yes', 'No', 'No phone service'))
+    # multiple_lines = st.sidebar.selectbox('Multiple Lines', ('Yes', 'No'))
+    # internet_service_type = st.sidebar.selectbox('Internet Service Type', ('DSL', 'Fiber optic', 'No'))
+    # online_security = st.sidebar.selectbox('Online Security', ('Yes', 'No', 'No internet service'))
+    # online_backup = st.sidebar.selectbox('Online Backup', ('Yes', 'No', 'No internet service'))
+    # device_protection = st.sidebar.selectbox('Device Protection', ('Yes', 'No', 'No internet service'))
+    # tech_support = st.sidebar.selectbox('Tech Support', ('Yes', 'No', 'No internet service'))
+    # streaming_tv = st.sidebar.selectbox('Streaming TV', ('Yes', 'No', 'No internet service'))
+    # streaming_movies = st.sidebar.selectbox('Streaming Movies', ('Yes', 'No', 'No internet service'))
+    # contract = st.sidebar.selectbox('Contract', ('Month-to-month', 'One year', 'Two year'))
+    # paperless_billing = st.sidebar.selectbox('Paperless Billing', ('Yes', 'No'))
 
-    payment_method = st.sidebar.selectbox('PaymentMethod', (
-        'Bank transfer (automatic)', 'Credit card (automatic)', 'Mailed check', 'Electronic check'))
+    # payment_method = st.sidebar.selectbox('PaymentMethod', (
+    #     'Bank transfer (automatic)', 'Credit card (automatic)', 'Mailed check', 'Electronic check'))
 
-    # tenure filter
-    unique_tenure_values = df_churn.tenure.unique()
-    min_value, max_value = min(unique_tenure_values), max(unique_tenure_values)
+    # Term filter
+    unique_term_values = df_churn.Terms.unique()
+    min_value, max_value = min(unique_term_values), max(unique_term_values)
 
-    # tenure slider
-    tenure = st.sidebar.slider("Tenure", int(min_value), int(max_value), int(min_value), 1)
+    # Term slider
+    terms = st.sidebar.slider("Terms", int(min_value), int(max_value), int(min_value), 1)
 
-    # MonthlyCharges filter
-    unique_monthly_charges_values = df_churn.MonthlyCharges.unique()
-    min_value, max_value = min(unique_monthly_charges_values), max(unique_monthly_charges_values)
+    # InterestRate filter
+    unique_interest_rate_values = df_churn.InterestRate.unique()
+    min_value, max_value = min(unique_interest_rate_values), max(unique_interest_rate_values)
 
-    # MonthlyCharges slider
-    monthly_charges = st.sidebar.slider("Monthly Charges", min_value, max_value, float(min_value))
+    # InterestRate slider
+    interest_rate = st.sidebar.slider("Interest Rate", min_value, max_value, float(min_value))
 
-    min_value_total = monthly_charges * tenure
-    max_value_total = (monthly_charges * tenure) + 100
+    # DisbursedAmount filter
+    unique_amount_values = df_churn.DisbursedAmount.unique()
+    min_value, max_value = min(unique_amount_values), max(unique_amount_values)
 
-    st.sidebar.markdown("**`TotalCharges`** = `MonthlyCharges` * `Tenure` + `Extra Cost ( ~100 )`")
+    # DisbursedAmount slider
+    amount = st.sidebar.slider("Disbursed Amount", int(min_value), int(max_value), int(min_value), 1)
 
-    # TotalCharges slider
-    total_charges = st.sidebar.slider("Total Charges", min_value_total, max_value_total)
+    # min_value_total = monthly_charges * tenure
+    # max_value_total = (monthly_charges * tenure) + 100
+
+    # st.sidebar.markdown("**`TotalCharges`** = `MonthlyCharges` * `Tenure` + `Extra Cost ( ~100 )`")
+
+    # # TotalCharges slider
+    # total_charges = st.sidebar.slider("Total Charges", min_value_total, max_value_total)
 
     # Churn filter
-    data = {'gender': [gender],
-            'SeniorCitizen': [1 if senior_citizen.lower() == 'yes' else 0],
-            'Partner': [partner],
-            'Dependents': [dependents],
-            'tenure': [tenure],
-            'PhoneService': [phone_service],
-            'MultipleLines': [multiple_lines],
-            'InternetService': [internet_service_type],
-            'OnlineSecurity': [online_security],
-            'OnlineBackup': [online_backup],
-            'DeviceProtection': [device_protection],
-            'TechSupport': [tech_support],
-            'StreamingTV': [streaming_tv],
-            'StreamingMovies': [streaming_movies],
-            'Contract': [contract],
-            'PaperlessBilling': [paperless_billing],
-            'PaymentMethod': [payment_method],
-            'MonthlyCharges': [monthly_charges],
-            'TotalCharges': [total_charges],
-            'tenure-binned': binning_feature('tenure', 7),
-            'MonthlyCharges-binned': binning_feature('MonthlyCharges', monthly_charges),
-            'TotalCharges-binned': binning_feature('TotalCharges', total_charges)
+    data = {'Gender': [gender],
+            #'SeniorCitizen': [1 if senior_citizen.lower() == 'yes' else 0],
+            'MaritalStatus': [marital_status],
+            'Occupation': [occupation],
+            'Terms-binned': [Terms_binned],
+            'Terms': [terms],
+            'InterestRate': [interest_rate],
+            'DisbursedAmount': [amount],
+            # 'OnlineSecurity': [online_security],
+            # 'OnlineBackup': [online_backup],
+            # 'DeviceProtection': [device_protection],
+            # 'TechSupport': [tech_support],
+            # 'StreamingTV': [streaming_tv],
+            # 'StreamingMovies': [streaming_movies],
+            # 'Contract': [contract],
+            # 'PaperlessBilling': [paperless_billing],
+            # 'PaymentMethod': [payment_method],
+            # 'MonthlyCharges': [monthly_charges],
+            # 'TotalCharges': [total_charges],
+            # 'tenure-binned': binning_feature('tenure', 7),
+            # 'MonthlyCharges-binned': binning_feature('MonthlyCharges', monthly_charges),
+            # 'TotalCharges-binned': binning_feature('TotalCharges', total_charges)
             }
 
     features = pd.DataFrame(data)
@@ -271,7 +275,7 @@ cat_cols = input_df.select_dtypes(include=['object']).columns
 # scaled_input = preprocessor.transform(input_df)
 # st.write(scaled_input)
 
-X = df_train.drop("Churn", axis=1)
+X = df_train.drop("cluster", axis=1)
 user_df = input_df.copy()
 ordinal_encoder = OrdinalEncoder()
 X[cat_cols] = ordinal_encoder.fit_transform(X[cat_cols])
@@ -283,6 +287,6 @@ user_df[num_cols] = transformer.transform(user_df[num_cols])
 
 if st.sidebar.button('Predict'):
     test_pred = make_prediction(user_df)
-    st.markdown(f"Prediction result : {'**Churned**' if test_pred[0]>0.5 else '**Not Churned**'} (Probability: {test_pred[0] : 0.2f}) ")
+    st.markdown(f"Prediction result : {'**Defaulted**' if test_pred[0]>0.5 else '**Not Defaulted**'} (Probability: {test_pred[0] : 0.2f}) ")
     st.write("User Input Features")
     st.dataframe(input_df)
